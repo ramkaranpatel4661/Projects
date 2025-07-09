@@ -110,12 +110,16 @@ const initializeSocket = (io) => {
         const chatRoomId = [currentUserId, itemOwnerId].sort().join('_') + '_' + itemId;
 
         // Emit message only to participants in this private chat
+        // Only emit to OTHER participants (not the sender)
         chat.participants.forEach(participantId => {
-          io.to(`user_${participantId}`).emit('new_message', {
-            itemId,
-            message: newMessage,
-            chatId: chat._id
-          });
+          const participantIdStr = participantId.toString();
+          if (participantIdStr !== currentUserId) {
+            io.to(`user_${participantIdStr}`).emit('new_message', {
+              itemId,
+              message: newMessage,
+              chatId: chat._id
+            });
+          }
         });
 
         console.log(`📩 Private message sent in item ${itemId} from ${socket.user.name} to chat participants only`);

@@ -257,4 +257,101 @@ router.put('/:chatId/read', auth, async (req, res) => {
   }
 });
 
+// @route   PUT /api/chat/:chatId/messages/:messageId
+// @desc    Edit a message (only by sender)
+// @access  Private
+router.put('/:chatId/messages/:messageId', auth, async (req, res) => {
+  try {
+    const { chatId, messageId } = req.params;
+    const { content } = req.body;
+
+    if (!content || content.trim().length === 0) {
+      return res.status(400).json({ message: 'Message content is required' });
+    }
+
+    const chat = await Chat.findById(chatId);
+    if (!chat) {
+      return res.status(404).json({ message: 'Chat not found' });
+    }
+
+    // Check if current user is a participant
+    const isParticipant = chat.participants.some(
+      participant => participant._id.toString() === req.user._id.toString()
+    );
+
+    if (!isParticipant) {
+      return res.status(403).json({ message: 'Access denied. You are not a participant in this chat.' });
+    }
+
+    // Find the message
+    const message = chat.messages.id(messageId);
+    if (!message) {
+      return res.status(404).json({ message: 'Message not found' });
+    }
+
+    // Check if current user is the sender
+    if (message.sender.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'You can only edit your own messages' });
+    }
+
+    // Update message
+    message.content = content.trim();
+    message.isEdited = true;
+    message.editedAt = new Date();
+
+    await chat.save();
+
+    await chat.populate('participants', 'name email');
+    await chat.populate('messages.sender', 'name email');
+
+    res.json({ message: 'Message updated successfully', chat });
+  } catch (error) {
+    console.error('Edit message error:', error);
+    res.status(500).json({ message: 'Server error editing message' });
+  }
+});
+
+// @route   DELETE /api/chat/:chatId/messages/:messageId
+// @desc    Delete a message (only by sender)
+// @access  Private
+router.delete('/:chatId/messages/:messageId', auth, async (req, res) => {
+  try {
+    const { chatId, messageId } = req.params;
+
+    const chat = await Chat.findById(chatId);
+    if (!chat) {
+      return res.status(404).json({ message: 'Chat not found' });
+    }
+
+    // Check if current user is a participant
+    const isParticipant = chat.participants.some(
+      participant => participant._id.toString() === req.user._id.toString()
+    );
+
+    if (!isParticipant) {
+      return res.status(403).json({ message: 'Access denied. You are not a participant in this chat.' });
+    }
+
+    // Find the message
+    const message = chat.messages.id(messageId);
+    if (!message) {
+      return res.status(404).json({ message: 'Message not found' });
+    }
+
+    // Check if current user is the sender
+    if (message.sender.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'You can only delete your own messages' });
+    }
+
+    // Remove message
+    chat.messages.pull(messageId);
+    await chat.save();
+
+    res.json({ message: 'Message deleted successfully' });
+  } catch (error) {
+    console.error('Delete message error:', error);
+    res.status(500).json({ message: 'Server error deleting message' });
+  }
+});
+
 module.exports = router;

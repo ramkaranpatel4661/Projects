@@ -19,6 +19,13 @@ const messageSchema = new mongoose.Schema({
   isRead: {
     type: Boolean,
     default: false
+  },
+  isEdited: {
+    type: Boolean,
+    default: false
+  },
+  editedAt: {
+    type: Date
   }
 });
 

@@ -39,9 +39,12 @@ const Header = () => {
   useEffect(() => {
     if (!socket || !user) return
 
-    const handler = ({ message }) => {
-      // server emits only to your personal room, so everything here is for you
-      if (message.sender._id !== user._id) {
+    const handler = ({ message, chatId }) => {
+      // Only increment unread count if message is not from current user
+      const senderId = message.sender._id || message.sender.id;
+      const currentUserId = user._id || user.id;
+      
+      if (senderId !== currentUserId) {
         setUnreadCount(c => c + 1)
       }
     }

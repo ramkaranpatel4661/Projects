@@ -45,7 +45,15 @@ const chatApi = {
   markAsRead: async (chatId) => api.put(`/chat/${chatId}/read`),
 
   // Clear all messages in a private chat (only for participants)
-  clearChat: async (chatId) => api.delete(`/chat/${chatId}/messages`)
+  clearChat: async (chatId) => api.delete(`/chat/${chatId}/messages`),
+
+  // Edit a message (only by sender)
+  editMessage: async (chatId, messageId, content) => 
+    api.put(`/chat/${chatId}/messages/${messageId}`, { content }),
+
+  // Delete a message (only by sender)
+  deleteMessage: async (chatId, messageId) => 
+    api.delete(`/chat/${chatId}/messages/${messageId}`)
 };
 
 export default chatApi;
