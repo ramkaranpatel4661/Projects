@@ -139,7 +139,7 @@ const ChatRoom = () => {
     if (!editContent.trim()) return;
 
     try {
-      await chatApi.editMessage(chat._id, messageId, editContent.trim());
+      const response = await chatApi.editMessage(chat._id, messageId, editContent.trim());
       
       // Update local state
       setMessages(prev => prev.map(msg => 
@@ -150,10 +150,11 @@ const ChatRoom = () => {
       
       setEditingMessage(null);
       setEditContent('');
+      setShowMessageMenu(null);
       toast.success('Message updated');
     } catch (error) {
       console.error('Failed to edit message:', error);
-      toast.error('Failed to edit message');
+      toast.error(error.response?.data?.message || 'Failed to edit message');
     }
   };
 
@@ -162,15 +163,16 @@ const ChatRoom = () => {
     if (!window.confirm('Are you sure you want to delete this message?')) return;
 
     try {
-      await chatApi.deleteMessage(chat._id, messageId);
+      const response = await chatApi.deleteMessage(chat._id, messageId);
       
       // Update local state
       setMessages(prev => prev.filter(msg => msg._id !== messageId));
       
+      setShowMessageMenu(null);
       toast.success('Message deleted');
     } catch (error) {
       console.error('Failed to delete message:', error);
-      toast.error('Failed to delete message');
+      toast.error(error.response?.data?.message || 'Failed to delete message');
     }
   };
 

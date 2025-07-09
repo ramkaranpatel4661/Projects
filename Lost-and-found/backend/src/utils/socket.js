@@ -119,6 +119,7 @@ const initializeSocket = (io) => {
               message: newMessage,
               chatId: chat._id
             });
+            console.log(`📩 Notification sent to user ${participantIdStr} for message from ${socket.user.name}`);
           }
         });
 
