@@ -22,9 +22,13 @@ const Header = () => {
         const res = await chatApi.getMyChats()
         const convos = Array.isArray(res.data) ? res.data : []
         const count = convos.reduce((sum, chat) => {
-          return sum + chat.messages.filter(
-            msg => !msg.isRead && msg.sender._id !== user._id
-          ).length
+          if (!chat.messages || !Array.isArray(chat.messages)) return sum;
+          
+          return sum + chat.messages.filter(msg => {
+            const senderId = msg.sender?._id || msg.sender?.id;
+            const currentUserId = user._id || user.id;
+            return !msg.isRead && senderId !== currentUserId;
+          }).length
         }, 0)
         setUnreadCount(count)
       } catch (err) {

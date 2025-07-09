@@ -126,9 +126,17 @@ const ChatList = () => {
       <div className="space-y-4">
         {conversations.map(chat => {
           // Find the other participant (not the current user)
-          const otherUser = chat.participants.find(p => p._id !== user._id);
+          const otherUser = chat.participants.find(p => {
+            const participantId = p._id || p.id;
+            const currentUserId = user._id || user.id;
+            return participantId !== currentUserId;
+          });
           const unreadCount = chat.messages.filter(
-            msg => !msg.isRead && msg.sender._id !== user._id
+            msg => {
+              const senderId = msg.sender._id || msg.sender.id;
+              const currentUserId = user._id || user.id;
+              return !msg.isRead && senderId !== currentUserId;
+            }
           ).length;
 
           return (

@@ -194,13 +194,19 @@ router.get('/user/conversations', auth, async (req, res) => {
       .populate('item', 'title type imageUrls')
       .sort('-lastMessage')
       .limit(20)
-      .lean();
+      .lean()
+      .exec();
 
     // Only include the last message for each chat
     const chatsWithLastMessage = chats.map(chat => {
       const lastMsg = chat.messages && chat.messages.length > 0 ? chat.messages[chat.messages.length - 1] : null;
+      
+      // Ensure participants array is properly populated
+      const participants = chat.participants || [];
+      
       return {
         ...chat,
+        participants,
         messages: lastMsg ? [lastMsg] : []
       };
     });
@@ -208,8 +214,14 @@ router.get('/user/conversations', auth, async (req, res) => {
     // Populate sender for the last message
     const populatedChats = await Promise.all(chatsWithLastMessage.map(async chat => {
       if (chat.messages.length > 0) {
-        const sender = await require('../models/User').findById(chat.messages[0].sender).select('name email');
-        chat.messages[0].sender = sender;
+        try {
+          const sender = await require('../models/User').findById(chat.messages[0].sender).select('name email');
+          if (sender) {
+            chat.messages[0].sender = sender;
+          }
+        } catch (error) {
+          console.error('Error populating message sender:', error);
+        }
       }
       return chat;
     }));

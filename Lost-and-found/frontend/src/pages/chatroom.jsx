@@ -210,7 +210,11 @@ const ChatRoom = () => {
   }
 
   const otherUser = chat?.participants.find(
-    p => p._id !== (user?._id || user?.id)
+    p => {
+      const participantId = p._id || p.id;
+      const currentUserId = user?._id || user?.id;
+      return participantId !== currentUserId;
+    }
   );
 
   return (
