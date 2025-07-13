@@ -36,6 +36,22 @@ const userSchema = new mongoose.Schema({
   lastSeen: {
     type: Date,
     default: Date.now
+  },
+  stats: {
+    itemsReturned: {
+      type: Number,
+      default: 0
+    },
+    successfulClaims: {
+      type: Number,
+      default: 0
+    },
+    trustScore: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100
+    }
   }
 }, {
   timestamps: true

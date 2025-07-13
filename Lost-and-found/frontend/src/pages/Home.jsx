@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, MapPin, Clock, Users, ArrowRight, Package, Heart } from 'lucide-react'
+import { Search, MapPin, Clock, Users, ArrowRight, Package, Heart, Shield } from 'lucide-react'
 import { itemsApi } from '../utils/api'
 import LoadingSpinner from '../components/LoadingSpinner'
 
@@ -197,18 +197,29 @@ const Home = () => {
       {/* Stats Section */}
       <section className="py-20 bg-primary-600 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">Community Impact</h2>
+            <p className="text-primary-200 text-lg">Together, we're making a difference</p>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div>
-              <div className="text-4xl md:text-5xl font-bold mb-2">1,000+</div>
+              <div className="text-4xl md:text-5xl font-bold mb-2">2,500+</div>
               <div className="text-primary-200 text-lg">Items Posted</div>
             </div>
             <div>
-              <div className="text-4xl md:text-5xl font-bold mb-2">500+</div>
+              <div className="text-4xl md:text-5xl font-bold mb-2">1,200+</div>
               <div className="text-primary-200 text-lg">Happy Reunions</div>
             </div>
             <div>
-              <div className="text-4xl md:text-5xl font-bold mb-2">50+</div>
-              <div className="text-primary-200 text-lg">Cities Covered</div>
+              <div className="text-4xl md:text-5xl font-bold mb-2">98%</div>
+              <div className="text-primary-200 text-lg">Successful Claims</div>
+            </div>
+          </div>
+          
+          <div className="mt-12 text-center">
+            <div className="inline-flex items-center space-x-2 bg-primary-500 rounded-full px-6 py-3">
+              <Shield className="w-5 h-5" />
+              <span className="font-semibold">Secure Verification System</span>
             </div>
           </div>
         </div>

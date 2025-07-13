@@ -14,6 +14,10 @@ import MyItems from './pages/MyItems'
 import ChatList from './pages/ChatList'
 import LoadingSpinner from './components/LoadingSpinner'
 import ChatRoom from './pages/chatroom'
+import ClaimItem from './pages/ClaimItem'
+import MyClaims from './pages/MyClaims'
+import ClaimReviews from './pages/ClaimReviews'
+import HandoverSuccess from './pages/HandoverSuccess'
 
 function App() {
   const { user, loading } = useAuth()
@@ -52,6 +56,10 @@ function App() {
           <Route path="my-items" element={<MyItems />} />
           <Route path="chats" element={<ChatList />} />
           <Route path="/chatroom/:chatId" element={<ChatRoom />} />
+          <Route path="claim/:id" element={<ClaimItem />} />
+          <Route path="my-claims" element={<MyClaims />} />
+          <Route path="claim-reviews" element={<ClaimReviews />} />
+          <Route path="handover-success/:claimId" element={<HandoverSuccess />} />
         </Route>
       )}
 

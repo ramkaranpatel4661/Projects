@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { MapPin, Clock, User, Eye, MessageCircle, Phone, Mail, ArrowLeft, Package, Lock } from 'lucide-react'
+import { MapPin, Clock, User, Eye, MessageCircle, Phone, Mail, ArrowLeft, Package, Lock, Shield } from 'lucide-react'
 import { itemsApi } from '../utils/api'
 import chatApi from '../api/chatApi'
 import { useAuth } from '../context/AuthContext'
@@ -191,10 +191,19 @@ const ItemDetail = () => {
                 <div className="border-t border-gray-200 pt-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Contact Owner</h3>
                   <div className="space-y-3">
+                    {item.type === 'found' && (
+                      <Link
+                        to={`/claim/${item._id}`}
+                        className="btn-primary w-full flex items-center justify-center"
+                      >
+                        <Shield className="w-4 h-4 mr-2" />
+                        Claim This Item
+                      </Link>
+                    )}
                     <button
                       onClick={handleStartChat}
                       disabled={startingChat}
-                      className="btn-primary w-full flex items-center justify-center"
+                      className={`${item.type === 'found' ? 'btn-outline' : 'btn-primary'} w-full flex items-center justify-center`}
                     >
                       <MessageCircle className="w-4 h-4 mr-2" />
                       <Lock className="w-3 h-3 mr-1" />
