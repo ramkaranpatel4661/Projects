@@ -116,11 +116,15 @@ router.post('/', auth, upload.fields([
 // @access  Private
 router.get('/my-claims', auth, async (req, res) => {
   try {
+    console.log('🔍 [claims.js] Fetching claims for user:', req.user._id);
+    
     const claims = await Claim.find({ claimant: req.user._id })
       .populate('item', 'title type imageUrls location')
       .populate('itemOwner', 'name')
       .sort('-createdAt');
 
+    console.log('📊 [claims.js] Found claims:', claims.length);
+    
     const safeClaims = claims.map(claim => claim.toSafeObject());
     res.json(safeClaims);
   } catch (error) {
@@ -134,6 +138,8 @@ router.get('/my-claims', auth, async (req, res) => {
 // @access  Private
 router.get('/pending-review', auth, async (req, res) => {
   try {
+    console.log('🔍 [claims.js] Fetching pending claims for user:', req.user._id);
+    
     const claims = await Claim.find({ 
       itemOwner: req.user._id,
       status: 'pending'
@@ -142,6 +148,8 @@ router.get('/pending-review', auth, async (req, res) => {
       .populate('item', 'title type imageUrls location')
       .sort('-createdAt');
 
+    console.log('📊 [claims.js] Found pending claims:', claims.length);
+    
     const safeClaims = claims.map(claim => claim.toSafeObject());
     res.json(safeClaims);
   } catch (error) {

@@ -124,6 +124,8 @@ router.post('/:itemId', auth, async (req, res) => {
     const { itemId } = req.params;
     const { content } = req.body;
 
+    console.log('📩 [chat.js] Sending message:', { itemId, content, userId: req.user._id });
+
     if (!content || content.trim().length === 0) {
       return res.status(400).json({ message: 'Message content is required' });
     }
@@ -131,14 +133,18 @@ router.post('/:itemId', auth, async (req, res) => {
     // Check if item exists
     const item = await Item.findById(itemId);
     if (!item) {
+      console.error('❌ [chat.js] Item not found:', itemId);
       return res.status(404).json({ message: 'Item not found' });
     }
 
     const currentUserId = req.user._id.toString();
     const itemOwnerId = item.postedBy.toString();
 
+    console.log('👥 [chat.js] Participants:', { currentUserId, itemOwnerId });
+
     // Prevent user from messaging themselves
     if (currentUserId === itemOwnerId) {
+      console.warn('⛔ [chat.js] User trying to message themselves');
       return res.status(400).json({ message: 'You cannot send a message to yourself' });
     }
 
@@ -148,8 +154,11 @@ router.post('/:itemId', auth, async (req, res) => {
       participants: { $all: [currentUserId, itemOwnerId], $size: 2 }
     });
 
+    console.log('💬 [chat.js] Existing chat found:', !!chat);
+
     if (!chat) {
       // Create new private chat with exactly 2 participants
+      console.log('🆕 [chat.js] Creating new chat');
       chat = new Chat({
         item: itemId,
         participants: [currentUserId, itemOwnerId],
@@ -161,6 +170,7 @@ router.post('/:itemId', auth, async (req, res) => {
       });
     } else {
       // Add message to existing chat
+      console.log('➕ [chat.js] Adding message to existing chat');
       chat.messages.push({
         sender: currentUserId,
         content: content.trim(),
@@ -171,9 +181,12 @@ router.post('/:itemId', auth, async (req, res) => {
     chat.lastMessage = new Date();
     await chat.save();
 
+    console.log('💾 [chat.js] Chat saved successfully');
+
     await chat.populate('participants', 'name email');
     await chat.populate('messages.sender', 'name email');
 
+    console.log('✅ [chat.js] Message sent successfully');
     res.json({ chat });
   } catch (error) {
     console.error('Send message error:', error);

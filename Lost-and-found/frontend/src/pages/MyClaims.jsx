@@ -29,11 +29,14 @@ const MyClaims = () => {
   const fetchMyClaims = async () => {
     try {
       setLoading(true);
+      console.log('🔄 [MyClaims] Fetching claims...');
       const response = await claimsApi.getMyClaims();
+      console.log('✅ [MyClaims] Claims fetched:', response.data);
       setClaims(response.data);
     } catch (error) {
-      console.error('Error fetching claims:', error);
-      toast.error('Failed to load your claims');
+      console.error('❌ [MyClaims] Error fetching claims:', error);
+      const message = error.response?.data?.message || 'Failed to load your claims';
+      toast.error(message);
     } finally {
       setLoading(false);
     }

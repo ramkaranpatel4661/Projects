@@ -154,11 +154,13 @@ claimSchema.statics.checkMultipleClaims = function(claimantId, timeWindow = 24) 
 
 // Instance method to mask sensitive data for frontend
 claimSchema.methods.toSafeObject = function() {
-  const obj = this.toObject();
+  const obj = this.toObject({ virtuals: true });
   
   // Remove sensitive data
-  delete obj.verificationDetails.idNumber;
-  delete obj.verificationDetails.phone;
+  if (obj.verificationDetails) {
+    delete obj.verificationDetails.idNumber;
+    delete obj.verificationDetails.phone;
+  }
   delete obj.ipAddress;
   delete obj.userAgent;
   

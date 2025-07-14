@@ -36,11 +36,14 @@ const ClaimReviews = () => {
   const fetchPendingClaims = async () => {
     try {
       setLoading(true);
+      console.log('🔄 [ClaimReviews] Fetching pending claims...');
       const response = await claimsApi.getPendingReviews();
+      console.log('✅ [ClaimReviews] Pending claims fetched:', response.data);
       setClaims(response.data);
     } catch (error) {
-      console.error('Error fetching pending claims:', error);
-      toast.error('Failed to load pending claims');
+      console.error('❌ [ClaimReviews] Error fetching pending claims:', error);
+      const message = error.response?.data?.message || 'Failed to load pending claims';
+      toast.error(message);
     } finally {
       setLoading(false);
     }

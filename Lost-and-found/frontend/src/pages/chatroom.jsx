@@ -108,13 +108,15 @@ const ChatRoom = () => {
   const handleSend = async () => {
     if (!newMessage.trim() || !chat || !user || sending) return;
 
+    const messageContent = newMessage.trim();
     const tempMessage = {
       _id: Date.now().toString(),
       sender: user,
-      content: newMessage.trim(),
+      content: messageContent,
       timestamp: new Date().toISOString(),
       isRead: false
     };
+    
     try {
       setSending(true);
       
@@ -123,7 +125,7 @@ const ChatRoom = () => {
       setNewMessage(''); // Clear input immediately
 
       // Send via API (which will also emit via socket)
-      const response = await chatApi.sendMessage(chat.item._id, newMessage.trim());
+      const response = await chatApi.sendMessage(chat.item._id, messageContent);
       
       // Replace temp message with real message from server
       if (response.data.chat && response.data.chat.messages) {
@@ -137,7 +139,7 @@ const ChatRoom = () => {
       toast.error('Failed to send message');
       // Remove the optimistic message on error
       setMessages(prev => prev.filter(msg => msg._id !== tempMessage._id));
-      setNewMessage(newMessage.trim()); // Restore message on error
+      setNewMessage(messageContent); // Restore message on error
     } finally {
       setSending(false);
     }
