@@ -1,5 +1,6 @@
 const express = require('express');
 const Item = require('../models/Item');
+const Claim = require('../models/Claim');
 const auth = require('../middleware/auth');
 const upload = require('../middleware/upload');
 
@@ -21,10 +22,16 @@ router.get('/', async (req, res) => {
     } = req.query;
 
     // Build query
-    const query = { status: 'active' };
+    let query = {};
     
-    if (type && ['found', 'lost'].includes(type)) {
-      query.type = type;
+    // Handle special "returned" type filter
+    if (type === 'returned') {
+      query.status = 'resolved';
+    } else {
+      query.status = 'active';
+      if (type && ['found', 'lost'].includes(type)) {
+        query.type = type;
+      }
     }
     
     if (category) {
@@ -47,11 +54,24 @@ router.get('/', async (req, res) => {
       .skip((page - 1) * limit)
       .exec();
 
+    // Get claim status for each item
+    const itemsWithClaimStatus = await Promise.all(items.map(async (item) => {
+      const claim = await Claim.findOne({ 
+        item: item._id, 
+        status: { $in: ['approved', 'completed'] } 
+      }).sort('-createdAt');
+      
+      const itemObj = item.toObject();
+      if (claim) {
+        itemObj.claimStatus = claim.status;
+      }
+      return itemObj;
+    }));
     // Get total count for pagination
     const total = await Item.countDocuments(query);
 
     res.json({
-      items,
+      items: itemsWithClaimStatus,
       pagination: {
         currentPage: Number(page),
         totalPages: Math.ceil(total / limit),

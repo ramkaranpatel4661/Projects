@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, Filter, MapPin, Clock, Package, ChevronDown } from 'lucide-react'
+import { Search, Filter, MapPin, Clock, Package, ChevronDown, CheckCircle, Award } from 'lucide-react'
 import { itemsApi } from '../utils/api'
+import claimsApi from '../api/claimsApi'
 import LoadingSpinner from '../components/LoadingSpinner'
 
 const Browse = () => {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
+  const [successfulReturns, setSuccessfulReturns] = useState(0)
   const [filters, setFilters] = useState({
     page: 1,
     limit: 12
@@ -25,8 +27,17 @@ const Browse = () => {
 
   useEffect(() => {
     fetchItems()
+    fetchSuccessfulReturns()
   }, [filters])
 
+  const fetchSuccessfulReturns = async () => {
+    try {
+      const response = await claimsApi.getSuccessfulReturnsCount()
+      setSuccessfulReturns(response.data.count)
+    } catch (error) {
+      console.error('Error fetching successful returns:', error)
+    }
+  }
   const fetchItems = async () => {
     try {
       setLoading(true)
@@ -62,12 +73,23 @@ const Browse = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Browse Items
-          </h1>
-          <p className="text-lg text-gray-600">
-            Find lost items or browse found items in your area
-          </p>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+                Browse Items
+              </h1>
+              <p className="text-lg text-gray-600">
+                Find lost items or browse found items in your area
+              </p>
+            </div>
+            <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
+              <div className="flex items-center justify-center space-x-2 mb-1">
+                <Award className="w-5 h-5 text-green-600" />
+                <span className="text-2xl font-bold text-green-700">{successfulReturns}</span>
+              </div>
+              <p className="text-sm text-green-600 font-medium">Items Successfully Returned</p>
+            </div>
+          </div>
         </div>
 
         {/* Search and Filters */}
@@ -106,6 +128,7 @@ const Browse = () => {
                 <option value="">All Types</option>
                 <option value="found">Found Items</option>
                 <option value="lost">Lost Items</option>
+                <option value="returned">Returned Items</option>
               </select>
             </div>
 
@@ -179,6 +202,26 @@ const Browse = () => {
                 to={`/item/${item._id}`}
                 className="card-hover group"
               >
+                {/* Status Badge */}
+                {(item.status === 'resolved' || item.claimStatus) && (
+                  <div className="absolute top-2 right-2 z-10">
+                    {item.claimStatus === 'completed' ? (
+                      <div className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center">
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        Returned
+                      </div>
+                    ) : item.claimStatus === 'approved' ? (
+                      <div className="bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-medium">
+                        Claimed
+                      </div>
+                    ) : item.status === 'resolved' ? (
+                      <div className="bg-gray-500 text-white px-2 py-1 rounded-full text-xs font-medium">
+                        Resolved
+                      </div>
+                    ) : null}
+                  </div>
+                )}
+                
                 <div className="aspect-w-16 aspect-h-12 bg-gray-200 rounded-t-xl overflow-hidden">
                   {item.imageUrls && item.imageUrls.length > 0 ? (
                     <img
