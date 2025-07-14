@@ -35,15 +35,27 @@ const claimsApi = {
     
     // Add text fields
     Object.keys(claimData).forEach(key => {
-      if (key !== 'proofDocuments') {
+      if (key !== 'proofDocuments' && key !== 'additionalProofImages' && key !== 'additionalProofDescriptions') {
         formData.append(key, claimData[key]);
       }
     });
+    
+    // Add additional proof descriptions as JSON
+    if (claimData.additionalProofDescriptions) {
+      formData.append('additionalProofDescriptions', JSON.stringify(claimData.additionalProofDescriptions));
+    }
     
     // Add files
     if (claimData.proofDocuments) {
       claimData.proofDocuments.forEach(file => {
         formData.append('proofDocuments', file);
+      });
+    }
+    
+    // Add additional proof images
+    if (claimData.additionalProofImages) {
+      claimData.additionalProofImages.forEach(file => {
+        formData.append('additionalProofImages', file);
       });
     }
     

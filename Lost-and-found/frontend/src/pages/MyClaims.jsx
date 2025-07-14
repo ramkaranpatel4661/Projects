@@ -126,7 +126,7 @@ const MyClaims = () => {
           </div>
         ) : (
           <div className="space-y-6">
-            {claims.map((claim) => (
+            {claims.filter(claim => claim.status !== 'completed').map((claim) => (
               <div key={claim._id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
                   <div className="flex items-start space-x-4 mb-4 lg:mb-0">
@@ -180,11 +180,11 @@ const MyClaims = () => {
                     </div>
                     
                     <Link
-                      to={`/claim/${claim._id}`}
+                      to={`/item/${claim.item._id}`}
                       className="btn-outline flex items-center"
                     >
                       <Eye className="w-4 h-4 mr-2" />
-                      View Details
+                      View Item
                     </Link>
                   </div>
                 </div>
@@ -217,15 +217,97 @@ const MyClaims = () => {
                   </div>
                 )}
 
-                {claim.status === 'completed' && (
-                  <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-sm text-blue-800">
-                      ✅ Item handover completed on {new Date(claim.handoverDetails.completedAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                )}
               </div>
             ))}
+
+            {/* Completed Claims Section */}
+            {claims.filter(claim => claim.status === 'completed').length > 0 && (
+              <div className="mt-12">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Successfully Returned Items
+                  </h2>
+                  <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                    {claims.filter(claim => claim.status === 'completed').length} Items Returned
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  {claims.filter(claim => claim.status === 'completed').map((claim) => (
+                    <div key={claim._id} className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl border border-green-200 p-6">
+                      <div className="flex items-start space-x-4">
+                        <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                          {claim.item.imageUrls && claim.item.imageUrls.length > 0 ? (
+                            <img
+                              src={`${import.meta.env.VITE_BASE_URL || 'http://localhost:5000'}${claim.item.imageUrls[0]}`}
+                              alt={claim.item.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Package className="w-6 h-6 text-gray-400" />
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <h3 className="text-lg font-semibold text-gray-900">
+                              {claim.item.title}
+                            </h3>
+                            <CheckCircle className="w-5 h-5 text-green-500" />
+                            <span className="bg-green-100 text-green-800 px-2.5 py-0.5 rounded-full text-xs font-medium">
+                              Successfully Returned
+                            </span>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 mb-3">
+                            <div className="flex items-center">
+                              <Calendar className="w-4 h-4 mr-1" />
+                              <span>Returned on {new Date(claim.handoverDetails.completedAt).toLocaleDateString()}</span>
+                            </div>
+                            <div className="flex items-center">
+                              <User className="w-4 h-4 mr-1" />
+                              <span>Returned by: {claim.itemOwner?.name}</span>
+                            </div>
+                          </div>
+                          
+                          {claim.handoverDetails.location && (
+                            <div className="flex items-center text-sm text-gray-600 mb-2">
+                              <MapPin className="w-4 h-4 mr-1" />
+                              <span>Pickup location: {claim.handoverDetails.location}</span>
+                            </div>
+                          )}
+                          
+                          {claim.handoverDetails.notes && (
+                            <div className="mt-3 p-3 bg-white rounded-lg border border-green-200">
+                              <p className="text-sm text-gray-700">
+                                <strong>Handover notes:</strong> {claim.handoverDetails.notes}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="flex flex-col items-end space-y-2">
+                          <Link
+                            to={`/handover-success/${claim._id}`}
+                            className="text-sm text-green-600 hover:text-green-700 font-medium"
+                          >
+                            View Certificate
+                          </Link>
+                          <Link
+                            to={`/item/${claim.item._id}`}
+                            className="text-sm text-gray-600 hover:text-gray-700"
+                          >
+                            View Item
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

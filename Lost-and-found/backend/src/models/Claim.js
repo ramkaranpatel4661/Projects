@@ -58,6 +58,20 @@ const claimSchema = new mongoose.Schema({
       default: Date.now
     }
   }],
+  // Additional proof images with descriptions
+  additionalProofImages: [{
+    filename: String,
+    originalName: String,
+    path: String,
+    description: {
+      type: String,
+      maxlength: 200
+    },
+    uploadDate: {
+      type: Date,
+      default: Date.now
+    }
+  }],
   // Status tracking
   status: {
     type: String,

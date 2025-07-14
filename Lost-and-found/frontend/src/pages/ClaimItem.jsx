@@ -28,6 +28,9 @@ const ClaimItem = () => {
   const [submitting, setSubmitting] = useState(false);
   const [proofFiles, setProofFiles] = useState([]);
   const [filePreviews, setFilePreviews] = useState([]);
+  const [additionalProofFiles, setAdditionalProofFiles] = useState([]);
+  const [additionalProofPreviews, setAdditionalProofPreviews] = useState([]);
+  const [additionalProofDescriptions, setAdditionalProofDescriptions] = useState([]);
 
   const {
     register,
@@ -100,9 +103,51 @@ const ClaimItem = () => {
     setFilePreviews(newPreviews);
   };
 
+  const handleAdditionalProofUpload = (e) => {
+    const files = Array.from(e.target.files || []);
+    
+    if (additionalProofFiles.length + files.length > 2) {
+      toast.error('Maximum 2 additional proof images allowed');
+      return;
+    }
+
+    const newFiles = [...additionalProofFiles, ...files];
+    setAdditionalProofFiles(newFiles);
+
+    // Create previews
+    const newPreviews = [...additionalProofPreviews];
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        newPreviews.push({
+          type: 'image',
+          url: e.target.result,
+          name: file.name
+        });
+        setAdditionalProofPreviews([...newPreviews]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeAdditionalProof = (index) => {
+    const newFiles = additionalProofFiles.filter((_, i) => i !== index);
+    const newPreviews = additionalProofPreviews.filter((_, i) => i !== index);
+    const newDescriptions = additionalProofDescriptions.filter((_, i) => i !== index);
+    setAdditionalProofFiles(newFiles);
+    setAdditionalProofPreviews(newPreviews);
+    setAdditionalProofDescriptions(newDescriptions);
+  };
+
+  const handleDescriptionChange = (index, description) => {
+    const newDescriptions = [...additionalProofDescriptions];
+    newDescriptions[index] = description;
+    setAdditionalProofDescriptions(newDescriptions);
+  };
+
   const onSubmit = async (data) => {
-    if (proofFiles.length === 0) {
-      toast.error('Please upload at least one proof document');
+    if (proofFiles.length === 0 && additionalProofFiles.length === 0) {
+      toast.error('Please upload at least one proof document or additional proof image');
       return;
     }
 
@@ -117,7 +162,9 @@ const ClaimItem = () => {
         idNumber: data.idNumber,
         description: data.description,
         additionalProof: data.additionalProof,
-        proofDocuments: proofFiles
+        proofDocuments: proofFiles,
+        additionalProofImages: additionalProofFiles,
+        additionalProofDescriptions: additionalProofDescriptions
       };
 
       await claimsApi.submitClaim(claimData);
@@ -341,6 +388,60 @@ const ClaimItem = () => {
                     className="form-input"
                     placeholder="Any additional information that can help verify ownership (purchase details, serial numbers, etc.)"
                   />
+                  
+                  <div className="mt-4">
+                    <label className="form-label">Additional Proof Images (Optional)</label>
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                      <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                      <p className="text-sm text-gray-600 mb-2">Upload additional proof images</p>
+                      <p className="text-xs text-gray-500 mb-3">
+                        Screenshots, receipts, or other supporting images. Maximum 2 additional files.
+                      </p>
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={handleAdditionalProofUpload}
+                        className="hidden"
+                        id="additional-proof-upload"
+                      />
+                      <label
+                        htmlFor="additional-proof-upload"
+                        className="btn-outline cursor-pointer text-sm"
+                      >
+                        Choose Images
+                      </label>
+                    </div>
+
+                    {additionalProofPreviews.length > 0 && (
+                      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {additionalProofPreviews.map((preview, index) => (
+                          <div key={index} className="relative border rounded-lg p-3">
+                            <img
+                              src={preview.url}
+                              alt={`Additional proof ${index + 1}`}
+                              className="w-full h-32 object-cover rounded"
+                            />
+                            <p className="text-xs text-gray-600 mt-2 truncate">{preview.name}</p>
+                            <input
+                              type="text"
+                              placeholder="Describe this image (optional)"
+                              value={additionalProofDescriptions[index] || ''}
+                              onChange={(e) => handleDescriptionChange(index, e.target.value)}
+                              className="w-full mt-2 px-2 py-1 text-xs border border-gray-300 rounded"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeAdditionalProof(index)}
+                              className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

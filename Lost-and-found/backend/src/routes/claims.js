@@ -10,7 +10,10 @@ const router = express.Router();
 // @route   POST /api/claims
 // @desc    Submit a claim for an item
 // @access  Private
-router.post('/', auth, upload.array('proofDocuments', 3), async (req, res) => {
+router.post('/', auth, upload.fields([
+  { name: 'proofDocuments', maxCount: 3 },
+  { name: 'additionalProofImages', maxCount: 2 }
+]), async (req, res) => {
   try {
     const {
       itemId,
@@ -19,7 +22,8 @@ router.post('/', auth, upload.array('proofDocuments', 3), async (req, res) => {
       idType,
       idNumber,
       description,
-      additionalProof
+      additionalProof,
+      additionalProofDescriptions
     } = req.body;
 
     // Check if item exists and is active
@@ -56,10 +60,18 @@ router.post('/', auth, upload.array('proofDocuments', 3), async (req, res) => {
     }
 
     // Process uploaded proof documents
-    const proofDocuments = req.files ? req.files.map(file => ({
+    const proofDocuments = req.files?.proofDocuments ? req.files.proofDocuments.map(file => ({
       filename: file.filename,
       originalName: file.originalname,
       path: file.path
+    })) : [];
+
+    // Process additional proof images
+    const additionalProofImages = req.files?.additionalProofImages ? req.files.additionalProofImages.map((file, index) => ({
+      filename: file.filename,
+      originalName: file.originalname,
+      path: file.path,
+      description: additionalProofDescriptions ? JSON.parse(additionalProofDescriptions)[index] || '' : ''
     })) : [];
 
     // Create claim
@@ -76,6 +88,7 @@ router.post('/', auth, upload.array('proofDocuments', 3), async (req, res) => {
         additionalProof
       },
       proofDocuments,
+      additionalProofImages,
       ipAddress: req.ip,
       userAgent: req.get('User-Agent')
     });
