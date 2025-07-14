@@ -336,4 +336,17 @@ router.get('/item/:itemId', auth, async (req, res) => {
   }
 });
 
+// @route   GET /api/claims/successful-returns-count
+// @desc    Get count of successful returns (public)
+// @access  Public
+router.get('/successful-returns-count', async (req, res) => {
+  try {
+    const count = await Claim.countDocuments({ status: 'completed' });
+    res.json({ count });
+  } catch (error) {
+    console.error('Error fetching successful returns count:', error);
+    res.status(500).json({ message: 'Server error fetching count' });
+  }
+});
+
 module.exports = router;

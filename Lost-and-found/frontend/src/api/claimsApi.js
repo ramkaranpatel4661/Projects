@@ -84,7 +84,10 @@ const claimsApi = {
     api.put(`/claims/${claimId}/complete-handover`, { location, notes }),
 
   // Get all claims for a specific item
-  getItemClaims: async (itemId) => api.get(`/claims/item/${itemId}`)
+  getItemClaims: async (itemId) => api.get(`/claims/item/${itemId}`),
+
+  // Get count of successful returns (public)
+  getSuccessfulReturnsCount: async () => api.get('/claims/successful-returns-count')
 };
 
 export default claimsApi;
