@@ -46,11 +46,6 @@ const ItemDetail = () => {
     
     if (!item) return;
 
-    // Check if user is trying to chat with themselves
-    if (user._id === item.postedBy._id || user.id === item.postedBy._id) {
-      toast.error('You cannot start a chat with yourself');
-      return;
-    }
 
     try {
       setStartingChat(true);

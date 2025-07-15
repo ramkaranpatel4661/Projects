@@ -239,6 +239,9 @@ const ChatRoom = () => {
     }
   );
 
+  // If no other user found (user is chatting with themselves), use current user
+  const displayUser = otherUser || user;
+  const isOwnerChat = !otherUser; // True if user is the item owner chatting with themselves
   return (
     <div className="max-h-screen bg-gray-50">
       <div className="max-w-2xl mx-auto px-4 py-6">
@@ -259,7 +262,7 @@ const ChatRoom = () => {
                 </div>
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900">
-                    {otherUser?.name || 'Private Chat'}
+                    {isOwnerChat ? `${displayUser?.name} (Item Owner)` : displayUser?.name || 'Private Chat'}
                   </h2>
                   <p className="text-sm text-gray-600">
                     About: {chat.item?.title || 'Item'}
@@ -268,7 +271,7 @@ const ChatRoom = () => {
               </div>
               <div className="flex items-center space-x-1 text-xs text-gray-500 bg-green-50 px-2 py-1 rounded-full">
                 <Lock className="w-3 h-3" />
-                <span>Private</span>
+                <span>{isOwnerChat ? 'Owner Chat' : 'Private'}</span>
               </div>
             </div>
           </div>
@@ -282,7 +285,10 @@ const ChatRoom = () => {
               <div className="text-center py-8">
                 <p className="text-gray-500">No messages yet. Start the conversation!</p>
                 <p className="text-xs text-gray-400 mt-2">
-                  🔒 This is a private conversation between you and {otherUser?.name}
+                  🔒 {isOwnerChat 
+                    ? 'This is your item chat - you can leave notes or test messaging' 
+                    : `This is a private conversation between you and ${displayUser?.name}`
+                  }
                 </p>
               </div>
             ) : (
@@ -410,7 +416,10 @@ const ChatRoom = () => {
             </div>
             <p className="text-xs text-gray-500 mt-2 flex items-center">
               <Lock className="w-3 h-3 mr-1" />
-              Only you and {otherUser?.name} can see this conversation
+              {isOwnerChat 
+                ? 'This is your private item chat space' 
+                : `Only you and ${displayUser?.name} can see this conversation`
+              }
             </p>
           </div>
         </div>

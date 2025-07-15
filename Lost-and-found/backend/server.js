@@ -27,6 +27,9 @@ const io = socketIo(server, {
 // Socket.io setup
 initializeSocket(io);
 
+// Make io available to routes
+app.set('io', io);
+
 // Connect to MongoDB
 connectDB();
 

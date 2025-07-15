@@ -84,24 +84,28 @@ router.get('/:itemId', auth, async (req, res) => {
     const currentUserId = req.user._id.toString();
     const itemOwnerId = item.postedBy.toString();
 
-    // Prevent user from chatting with themselves
-    if (currentUserId === itemOwnerId) {
-      return res.status(400).json({ message: 'You cannot start a chat with yourself' });
-    }
 
     // Find existing chat between current user and item owner for this specific item
     let chat = await Chat.findOne({
       item: itemId,
-      participants: { $all: [currentUserId, itemOwnerId], $size: 2 }
+      $or: [
+        { participants: { $all: [currentUserId, itemOwnerId] } },
+        { participants: currentUserId }
+      ]
     })
       .populate('participants', 'name email')
       .populate('messages.sender', 'name email');
 
     if (!chat) {
+      // Determine participants
+      const participants = currentUserId === itemOwnerId 
+        ? [currentUserId] 
+        : [currentUserId, itemOwnerId];
+        
       // Create new private chat between current user and item owner
       chat = new Chat({
         item: itemId,
-        participants: [currentUserId, itemOwnerId], // Exactly 2 participants
+        participants: participants,
         messages: []
       });
       
@@ -143,16 +147,14 @@ router.post('/:itemId', auth, async (req, res) => {
 
     console.log('👥 [chat.js] Participants:', { currentUserId, itemOwnerId });
 
-    // Prevent user from messaging themselves
-    if (currentUserId === itemOwnerId) {
-      console.warn('⛔ [chat.js] User trying to message themselves');
-      return res.status(400).json({ message: 'You cannot send a message to yourself' });
-    }
 
     // Find existing chat between current user and item owner
     let chat = await Chat.findOne({
       item: itemId,
-      participants: { $all: [currentUserId, itemOwnerId], $size: 2 }
+      $or: [
+        { participants: { $all: [currentUserId, itemOwnerId] } },
+        { participants: currentUserId }
+      ]
     });
 
     console.log('💬 [chat.js] Existing chat found:', !!chat);
@@ -160,9 +162,15 @@ router.post('/:itemId', auth, async (req, res) => {
     if (!chat) {
       // Create new private chat with exactly 2 participants
       console.log('🆕 [chat.js] Creating new chat');
+      
+      // Determine participants - if user is item owner, they can still chat (for testing/admin purposes)
+      const participants = currentUserId === itemOwnerId 
+        ? [currentUserId] 
+        : [currentUserId, itemOwnerId];
+      
       chat = new Chat({
         item: itemId,
-        participants: [currentUserId, itemOwnerId],
+        participants: participants,
         messages: [{
           sender: currentUserId,
           content: content.trim(),
@@ -170,6 +178,16 @@ router.post('/:itemId', auth, async (req, res) => {
         }]
       });
     } else {
+      // Check if current user is a participant in this chat
+      const isParticipant = chat.participants.some(
+        participant => participant.toString() === currentUserId
+      );
+      
+      if (!isParticipant) {
+        console.warn('⛔ [chat.js] User not a participant in this chat');
+        return res.status(403).json({ message: 'You are not authorized to send messages in this chat' });
+      }
+      
       // Add message to existing chat
       console.log('➕ [chat.js] Adding message to existing chat');
       chat.messages.push({
@@ -192,6 +210,23 @@ router.post('/:itemId', auth, async (req, res) => {
 
     await chat.populate('participants', 'name email');
     await chat.populate('messages.sender', 'name email');
+    // Emit socket event for real-time updates
+    const io = req.app.get('io');
+    if (io) {
+      const newMessage = chat.messages[chat.messages.length - 1];
+      
+      // Emit to all participants except the sender
+      chat.participants.forEach(participant => {
+        const participantId = participant._id.toString();
+        if (participantId !== currentUserId) {
+          io.to(`user_${participantId}`).emit('new_message', {
+            itemId,
+            message: newMessage,
+            chatId: chat._id
+          });
+        }
+      });
+    }
 
     console.log('✅ [chat.js] Message sent successfully');
     res.json({ chat });
