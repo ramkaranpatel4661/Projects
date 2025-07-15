@@ -106,7 +106,15 @@ const ChatRoom = () => {
 
   // 6) Send a message
   const handleSend = async () => {
-    if (!newMessage.trim() || !chat || !user || sending) return;
+    if (!newMessage.trim() || !chat || !user || sending) {
+      console.log('Send blocked:', { 
+        hasMessage: !!newMessage.trim(), 
+        hasChat: !!chat, 
+        hasUser: !!user, 
+        sending 
+      });
+      return;
+    }
 
     const messageContent = newMessage.trim();
     const tempMessage = {
@@ -119,6 +127,7 @@ const ChatRoom = () => {
     
     try {
       setSending(true);
+      console.log('Sending message:', messageContent);
       
       // Optimistically add message to UI first
       setMessages(prev => [...prev, tempMessage]);
@@ -126,6 +135,7 @@ const ChatRoom = () => {
 
       // Send via API (which will also emit via socket)
       const response = await chatApi.sendMessage(chat.item._id, messageContent);
+      console.log('Message sent successfully:', response.data);
       
       // Replace temp message with real message from server
       if (response.data.chat && response.data.chat.messages) {
@@ -136,6 +146,7 @@ const ChatRoom = () => {
       }
     } catch (error) {
       console.error('Failed to send message:', error);
+      console.error('Error details:', error.response?.data);
       toast.error('Failed to send message');
       // Remove the optimistic message on error
       setMessages(prev => prev.filter(msg => msg._id !== tempMessage._id));

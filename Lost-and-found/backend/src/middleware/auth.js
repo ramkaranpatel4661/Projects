@@ -5,7 +5,7 @@ const User = require('../models/User');
 const auth = async (req, res, next) => {
   try {
     const authHeader = req.header('Authorization');
-    console.log('🔐 [auth.js] Incoming Authorization Header:', authHeader);
+    // console.log('🔐 [auth.js] Incoming Authorization Header:', authHeader);
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       console.warn('⛔ [auth.js] Authorization token missing or malformed');
@@ -17,7 +17,7 @@ const auth = async (req, res, next) => {
     }
 
     const token = authHeader.replace('Bearer ', '').trim();
-    console.log('🔐 [auth.js] Extracted Token:', token);
+    // console.log('🔐 [auth.js] Extracted Token:', token);
 
     if (!process.env.JWT_SECRET) {
       console.error('❌ [auth.js] JWT_SECRET is not defined in environment variables');
@@ -49,7 +49,7 @@ const auth = async (req, res, next) => {
       });
     }
 
-    console.log('🔓 [auth.js] Decoded Token Payload:', decoded);
+    // console.log('🔓 [auth.js] Decoded Token Payload:', decoded);
 
     const user = await User.findById(decoded.userId).select('-password');
     if (!user) {
@@ -61,7 +61,7 @@ const auth = async (req, res, next) => {
       });
     }
 
-    console.log('✅ [auth.js] Authenticated user:', user.name, user._id);
+    // console.log('✅ [auth.js] Authenticated user:', user.name, user._id);
     req.user = user;
     next();
   } catch (error) {

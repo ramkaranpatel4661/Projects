@@ -40,13 +40,44 @@ const chatApi = {
   getMyChats: async () => api.get('/chat/user/conversations'),
 
   // Get or create a private chat between current user and item owner
-  getOrCreateChat: async (itemId) => api.get(`/chat/${itemId}`),
+  getOrCreateChat: async (itemId) => {
+    console.log('🔄 [chatApi] Getting/creating chat for item:', itemId);
+    try {
+      const response = await api.get(`/chat/${itemId}`);
+      console.log('✅ [chatApi] Chat retrieved/created:', response.data);
+      return response;
+    } catch (error) {
+      console.error('❌ [chatApi] Failed to get/create chat:', error);
+      throw error;
+    }
+  },
 
   // Get full chat object with messages by chat ID (only if user is participant)
-  getChat: async (chatId) => api.get(`/chat/byid/${chatId}`),
+  getChat: async (chatId) => {
+    console.log('🔄 [chatApi] Getting chat by ID:', chatId);
+    try {
+      const response = await api.get(`/chat/byid/${chatId}`);
+      console.log('✅ [chatApi] Chat retrieved:', response.data);
+      return response;
+    } catch (error) {
+      console.error('❌ [chatApi] Failed to get chat:', error);
+      throw error;
+    }
+  },
 
   // Send message in a private chat
-  sendMessage: async (itemId, content) => api.post(`/chat/${itemId}`, { content }),
+  sendMessage: async (itemId, content) => {
+    console.log('📤 [chatApi] Sending message:', { itemId, content });
+    try {
+      const response = await api.post(`/chat/${itemId}`, { content });
+      console.log('✅ [chatApi] Message sent:', response.data);
+      return response;
+    } catch (error) {
+      console.error('❌ [chatApi] Failed to send message:', error);
+      console.error('Error response:', error.response?.data);
+      throw error;
+    }
+  },
 
   // Mark messages in chat as read (only for participants)
   markAsRead: async (chatId) => api.put(`/chat/${chatId}/read`),

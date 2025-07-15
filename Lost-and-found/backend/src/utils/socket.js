@@ -65,6 +65,8 @@ const initializeSocket = (io) => {
     // Handle sending messages (private between participants only)
     socket.on('send_message', async ({ itemId, content }) => {
       try {
+        console.log('📨 [socket.js] Received send_message event:', { itemId, content, userId: socket.userId });
+        
         const item = await Item.findById(itemId);
         if (!item) return;
 
@@ -100,7 +102,14 @@ const initializeSocket = (io) => {
         };
         chat.messages.push(message);
         chat.lastMessage = new Date();
-        await chat.save();
+        
+        try {
+          await chat.save();
+          console.log('💾 [socket.js] Chat saved via socket');
+        } catch (saveError) {
+          console.error('❌ [socket.js] Failed to save chat via socket:', saveError);
+          return;
+        }
 
         // Populate the newly added message
         const populatedChat = await chat.populate('messages.sender', 'name email');
@@ -125,7 +134,8 @@ const initializeSocket = (io) => {
 
         console.log(`📩 Private message sent in item ${itemId} from ${socket.user.name} to chat participants only`);
       } catch (error) {
-        console.error('❌ Error sending private message:', error.message);
+        console.error('❌ [socket.js] Error sending private message:', error);
+        console.error('Error stack:', error.stack);
       }
     });
 

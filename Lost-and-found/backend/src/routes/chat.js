@@ -126,7 +126,8 @@ router.post('/:itemId', auth, async (req, res) => {
 
     console.log('📩 [chat.js] Sending message:', { itemId, content, userId: req.user._id });
 
-    if (!content || content.trim().length === 0) {
+    if (!content || typeof content !== 'string' || content.trim().length === 0) {
+      console.warn('⛔ [chat.js] Invalid message content:', content);
       return res.status(400).json({ message: 'Message content is required' });
     }
 
@@ -179,9 +180,15 @@ router.post('/:itemId', auth, async (req, res) => {
     }
 
     chat.lastMessage = new Date();
-    await chat.save();
+    
+    try {
+      await chat.save();
+      console.log('💾 [chat.js] Chat saved successfully');
+    } catch (saveError) {
+      console.error('❌ [chat.js] Failed to save chat:', saveError);
+      return res.status(500).json({ message: 'Failed to save message' });
+    }
 
-    console.log('💾 [chat.js] Chat saved successfully');
 
     await chat.populate('participants', 'name email');
     await chat.populate('messages.sender', 'name email');
@@ -189,7 +196,8 @@ router.post('/:itemId', auth, async (req, res) => {
     console.log('✅ [chat.js] Message sent successfully');
     res.json({ chat });
   } catch (error) {
-    console.error('Send message error:', error);
+    console.error('❌ [chat.js] Send message error:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({ message: 'Server error sending message' });
   }
 });
